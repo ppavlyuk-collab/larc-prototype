@@ -384,7 +384,13 @@ const STIH=[[['Открылась бездна, звезд полна;','Зве�
 const QL=[],QT=['Свет','Тень','Архитектура','Цвет','Окно','Фонарь','Город','Театр','Музыка','Красота','Ночь','Солнце'];
 function qParse(t){const out=[],re=/\{\{Q\|((?:[^{}]|\{\{[^{}]*\}\})*)\}\}/g,cl=s=>s.replace(/<ref[^>]*\/>/g,'').replace(/<ref[\s\S]*?<\/ref>/g,'').replace(/\{\{[^{}]*\}\}/g,'').replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/'{2,}/g,'').replace(/<[^>]+>/g,'').split(String.fromCharCode(8212)).join(String.fromCharCode(8211)).replace(/\s+/g,' ').trim();let m;
   while((m=re.exec(t))){const b=m[1],am=/\|\s*Автор\s*=\s*([^|]*)/.exec(b),q=cl(b.replace(/^\s*Цитата\s*=\s*/,'').split(/\|\s*(?:Автор|Комментарий|Оригинал)\s*=/)[0]),au=am?cl(am[1]).split(',')[0].slice(0,42):'';if(q.length>24&&q.length<150)out.push([q,au])}return out}
-window.__ql=QL;window.__qready=Promise.all(QT.map(t=>fetch('https://ru.wikiquote.org/w/api.php?action=parse&page='+encodeURIComponent(t)+'&prop=wikitext&format=json&origin=*').then(r=>r.json()).then(d=>{QL.push(...qParse(d.parse.wikitext['*']))}).catch(()=>{})));
+/* цитаты архитекторов (10.247): страницы Викицитатника; на русском есть Ле Корбюзье, остальные на английском и идут в языке оригинала. Запросы по очереди, иначе источник отвечает отказом */
+const QA=[['ru','Ле Корбюзье','Ле Корбюзье'],['ru','Архитектор',null],['en','Zaha Hadid','Заха Хадид'],['en','Le Corbusier','Ле Корбюзье'],['en','Frank Lloyd Wright','Фрэнк Ллойд Райт'],['en','Ludwig Mies van der Rohe','Людвиг Мис ван дер Роэ'],['en','Louis Kahn','Луис Кан'],['en','Antoni Gaudí','Антонио Гауди'],['en','Oscar Niemeyer','Оскар Нимейер'],['en','Tadao Ando','Тадао Андо'],['en','Renzo Piano','Ренцо Пиано'],['en','Frank Gehry','Фрэнк Гери'],['en','Norman Foster','Норман Фостер']];
+function qParseEn(t,au){const w=t.split(/==\s*(Quotes about|Misattributed|Disputed|External links|See also|Sources)/)[0],cl=s=>s.replace(/<ref[^>]*\/>/g,'').replace(/<ref[\s\S]*?<\/ref>/g,'').replace(/\{\{[^{}]*\}\}/g,'').replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/\[https?:[^\s\]]+ ?([^\]]*)\]/g,'$1').replace(/'{2,}/g,'').replace(/<[^>]+>/g,'').split(String.fromCharCode(8212)).join(String.fromCharCode(8211)).replace(/\s+/g,' ').trim();
+  return w.split('\n').filter(l=>/^\* [^*]/.test(l)).map(l=>cl(l.slice(2))).filter(s=>s.length>30&&s.length<230).map(s=>[s,au,1])}
+const qGet=(site,t)=>fetch('https://'+site+'.wikiquote.org/w/api.php?action=parse&page='+encodeURIComponent(t)+'&prop=wikitext&format=json&redirects=1&origin=*').then(r=>r.json());
+window.__ql=QL;window.__qready=(async()=>{for(const t of QT){try{const d=await qGet('ru',t);QL.push(...qParse(d.parse.wikitext['*']))}catch(e){}await new Promise(r=>setTimeout(r,250))}
+  for(const [site,t,au] of QA){try{const d=await qGet(site,t);if(d.parse){const w=d.parse.wikitext['*'];if(site==='ru')QL.push(...qParse(w).map(q=>au?[q[0],au,1]:(Object.values(ARH).some(v=>v.n===q[1])?[q[0],q[1],1]:q)));else QL.push(...qParseEn(w,au))}}catch(e){}await new Promise(r=>setTimeout(r,350))}})();
 V.stih=function(a,b,x,y,w,h,r,o){const f=r.b(.35)?4:1;let lines,au;if(QL.length){const q=QL[Math.floor(r.f(0,QL.length-.001))];au=q[1];let px0=Math.min(24,h*.2);b.font=FT[f](px0);lines=wrap(b,q[0],w-10);if(lines.length*px0*1.25>h-22){px0*=.8;b.font=FT[f](px0);lines=wrap(b,q[0],w-10)}lines=lines.slice(0,Math.max(1,Math.floor((h-22)/(px0*1.25))))}else{const q=r.pick(STIH);lines=q[0];au=q[1]}
   const n=lines.length;let px=Math.min(30,(h-26)/(n*1.25));b.save();b.fillStyle=P.ink;for(let g=0;g<8;g++){b.font=FT[f](px);if(Math.max(...lines.map(s=>b.measureText(s).width))<=w-8)break;px*=.9}
   const y0=y+(h-n*px*1.25-16)/2+px;lines.forEach((s,i)=>b.fillText(s,x+4,y0+i*px*1.25));b.restore();const H0=HAND;HAND=0;tx(a,au,x+4,y0+n*px*1.25+2,10.5,P.soft);HAND=H0;ln(a,[[x+4,y0-px-6],[x+34,y0-px-6]],1,P.acc[0])};
@@ -610,6 +616,113 @@ V.glichblok=function(a,b,x,y,w,h,r,o){const s=r.pick([8,10,14]),C=Math.max(4,Mat
 const MEAN4={glich:'Глич: фигура, разрезанная на сдвинутые полосы',glichsort:'Глич: пиксели, стёкшие от линии горизонта',glichblok:'Глич: изображение, распавшееся на блоки',poetazh:'Архитектурный чертёж: план этажа с осями и размерными линиями',order:'Ордер: колонна, капитель, антаблемент, карниз',svetoten:'Светотень: блик, полутон, собственная и падающая тень',nachert:'Начертательная геометрия: эпюр, две проекции одного тела',kolor:'Колористика: цветовой круг, триада, ряд светлоты',siluet:'Силуэт исторической застройки и памятников архитектуры',material:'Материал и фактура: кирпич, бетон, дерево, стекло, металл, камень',moda:'Мода: силуэт и пропорции',cirkad:'Циркадный ритм: яркость и цветовая температура биодинамического света по часам суток',rgbw:'RGBW: четыре канала управления цветом света',led:'Светодиод: кристалл, люминофор, линза, теплоотвод',teoria:'Теория света: освещённость убывает с квадратом расстояния',etika:'Этичный светодизайн: свет направлен вниз, небо и окна остаются тёмными',mebel:'Мебель и предметы интерьера: стол, стулья, подвес над столом',interer:'Интерьер: перспектива помещения и ряды светильников',genplan:'Генплан: участок, здания, проезд, рельеф',foto3d:'Фотограмметрия и аэрофотосъёмка: снимки, из которых собирают модель',landshaft:'Ландшафтный дизайн и озеленение: деревья, дорожка, светильники вдоль неё',zony:'Функциональное зонирование: жилая, деловая, рекреационная и производственная территории',insol:'Инсоляция: путь солнца в разные дни года и тень от здания',fsistema:'Фасадная система: стена, утеплитель, зазор, облицовка, раскладка кассет',voronka:'Маркетинговый эффект: воронка и рост просмотров',upakovka:'Упаковка: развёртка коробки, линии реза и сгиба',rasstan:'План освещения: расстановка светильников и группы',elektro:'Электрическая схема: щит, автоматы, групповые линии',interfeis:'Интерфейс управления светом: сценарии и уровни групп',ekonom:'Экономика и эксплуатация: затраты по годам и срок окупаемости',evak:'Безопасность: путь эвакуации и аварийное освещение',zodchie:'История архитектуры: годы жизни архитекторов и инженеров',karniz:'Деталь: профиль карниза и светильник за ним'};
 const AK4={glich:'blink',glichsort:'play',glichblok:'blink',poetazh:'trace',order:'trace',svetoten:'trace',nachert:'trace',kolor:'pulse',siluet:'trace',material:'blink',moda:'trace',cirkad:'trace',rgbw:'play',led:'pulse',teoria:'trace',etika:'trace',mebel:'pulse',interer:'pulse',genplan:'trace',foto3d:'trace',landshaft:'trace',zony:'blink',insol:'trace',fsistema:'pulse',voronka:'trace',upakovka:'trace',rasstan:'pulse',elektro:'trace',interfeis:'pulse',ekonom:'trace',evak:'trace',zodchie:'trace',karniz:'trace'};
 for(const n of Object.keys(MEAN4)){const f=V[n];V[n]=function(a,b,x,y,w,h,r,o){LBL=w>=200&&h>=110;const cs=a===b?[a]:[a,b];for(const c of cs){c.save();c.beginPath();c.rect(x-5,y-5,w+10,h+10);c.clip()}try{f(a,b,x,y,w,h,r,o)}finally{for(const c of cs)c.restore();LBL=1}}}
+/* темы 10.247: силуэты известных зданий и мировых городов, объекты бюро силуэтами, портреты архитекторов кодом, цитаты архитекторов */
+/* силуэт задан многоугольниками в долях: x от -0,5 до 0,5 ширины, y от 0 (земля) до 1 (верх); r это ширина к высоте */
+const ARC=(cx,cy,rx,ry,a0,a1,n=12)=>{const p=[];for(let i=0;i<=n;i++){const t=a0+(a1-a0)*i/n;p.push([cx+Math.cos(t)*rx,cy+Math.sin(t)*ry])}return p};
+const SYM=h=>[...h,...h.slice().reverse().map(q=>[-q[0],q[1]])];
+const ONION=(x,y0,w,h)=>{const p=[];for(let i=0;i<=16;i++){const t=i/16,y=y0+t*h,r=w*(t<.55?.5+.5*Math.sin(t/.55*Math.PI*.5)*.45+.05:(1-(t-.55)/.45)*.95)*.5;p.push([x+r,y])}return [[x-w*.5,y0],...p,...p.slice(0,-1).reverse().map(q=>[2*x-q[0],q[1]])]};
+const LMK={
+ eiffel:{n:'Эйфелева башня',a:'Гюстав Эйфель, 1889',r:.62,p:[[[-.5,0],[-.33,.2],[-.16,.33],[-.11,.37],[-.06,.62],[-.035,.86],[-.015,.94],[0,1],[.015,.94],[.035,.86],[.06,.62],[.11,.37],[.16,.33],[.33,.2],[.5,0],[.3,0],...ARC(0,0,.3,.15,0,Math.PI,10).slice(1,-1),[-.3,0]]],l:[[[-.33,.2],[.33,.2]],[[-.12,.37],[.12,.37]],[[-.05,.66],[.05,.66]]]},
+ burj:{n:'Бурдж-Халифа',a:'SOM, Эдриан Смит, 2010',r:.2,p:[[[-.5,0],[-.5,.28],[-.38,.28],[-.38,.46],[-.27,.46],[-.27,.62],[-.17,.62],[-.17,.76],[-.08,.76],[-.04,.9],[0,1],[.03,.9],[.07,.82],[.16,.82],[.16,.69],[.26,.69],[.26,.54],[.37,.54],[.37,.37],[.5,.37],[.5,0]]]},
+ opera:{n:'Сиднейский оперный театр',a:'Йорн Утзон, 1973',r:2.4,p:[[[-.5,0],[-.5,.14],[.5,.14],[.5,0]],[[-.44,.14],[-.37,.8],[-.24,.14]],[[-.3,.14],[-.2,1],[-.05,.14]],[[-.1,.14],[.0,.85],[.13,.14]],[[.08,.14],[.18,.62],[.3,.14]],[[.24,.14],[.33,.42],[.44,.14]]]},
+ empire:{n:'Эмпайр-стейт-билдинг',a:'Шрив, Лэмб и Хармон, 1931',r:.36,p:[SYM([[0,1],[.012,.9],[.04,.86],[.04,.8],[.09,.8],[.09,.74],[.15,.74],[.15,.66],[.22,.66],[.22,.26],[.32,.26],[.32,.12],[.5,.12],[.5,0]])]},
+ chrysler:{n:'Крайслер-билдинг',a:'Уильям ван Ален, 1930',r:.3,p:[SYM([[0,1],[.02,.86],[.06,.82],[.1,.78],[.13,.74],[.16,.7],[.19,.66],[.22,.62],[.22,.3],[.34,.3],[.34,.16],[.5,.16],[.5,0]])],l:[[[-.13,.74],[.13,.74]],[[-.19,.66],[.19,.66]]]},
+ gherkin:{n:'Мэри-Экс, «Огурец»',a:'Норман Фостер, 2004',r:.42,p:[(()=>{const p=[];for(let i=0;i<=20;i++){const y=i/20,w=.5*Math.sin(Math.PI*Math.min(1,y*.9+.08))*(1-.15*y);p.push([w,y])}p[20]=[0,1];return [...p.slice().reverse().map(q=>[-q[0],q[1]]),...p.slice(1)]})()]},
+ heydar:{n:'Центр Гейдара Алиева',a:'Заха Хадид, 2012',r:2.6,p:[(()=>{const p=[[-.5,0]];for(let i=0;i<=40;i++){const x=-.5+i/40,y=.12+.62*Math.exp(-Math.pow((x+.18)/.2,2))+.34*Math.exp(-Math.pow((x-.22)/.15,2))+.18*Math.exp(-Math.pow((x+.44)/.06,2));p.push([x,Math.min(1,y)])}p.push([.5,0]);return p})()]},
+ guggen:{n:'Музей Гуггенхайма в Бильбао',a:'Фрэнк Гери, 1997',r:1.7,p:[[[-.5,0],[-.46,.3],[-.36,.42],[-.3,.3],[-.2,.58],[-.1,.5],[-.02,.72],[.08,.55],[.14,.62],[.22,.4],[.3,.48],[.38,.3],[.5,.12],[.5,0]],[[.34,0],[.34,.55],[.38,.58],[.42,.55],[.42,0]]]},
+ colos:{n:'Колизей',a:'Рим, 80 год',r:2.3,p:[[[-.5,0],[-.5,.82],[-.2,1],[.5,1],[.5,0]]],l:[...[.25,.5,.75].map(v=>[[-.5,v],[.5,v]])],arc:{rows:3,cols:12}},
+ panth:{n:'Пантеон',a:'Рим, около 126 года',r:1.2,p:[[[-.5,0],[-.5,.55],[-.36,.55],[0,.78],[.36,.55],[.5,.55],[.5,0]],[...ARC(.1,.62,.38,.38,Math.PI,2*Math.PI,16).map(q=>[q[0],1.24-q[1]])]],cols:{x0:-.42,x1:.42,n:8,y1:.5}},
+ taj:{n:'Тадж-Махал',a:'Агра, 1653',r:1.35,p:[[[-.5,0],[-.5,.08],[.5,.08],[.5,0]],SYM([[0,1],[.03,.9],[.1,.8],[.14,.68],[.12,.6],[.2,.6],[.2,.08],[0,.08]]),[[-.47,.08],[-.47,.72],[-.45,.78],[-.43,.72],[-.43,.08]],[[.43,.08],[.43,.72],[.45,.78],[.47,.72],[.47,.08]]]},
+ petronas:{n:'Башни Петронас',a:'Сесар Пелли, 1998',r:.55,p:[...[-1,1].map(s=>[[s*.5,0],[s*.5,.7],[s*.44,.78],[s*.4,.86],[s*.34,.92],[s*.3,1],[s*.26,.92],[s*.2,.86],[s*.16,.78],[s*.1,.7],[s*.1,0]])],l:[[[-.1,.42],[.1,.42]]]},
+ vasiliy:{n:'Собор Василия Блаженного',a:'Москва, 1561',r:1.1,p:[[[-.5,0],[-.5,.35],[.5,.35],[.5,0]],SYM([[0,1],[.04,.75],[.08,.62],[.08,.35],[0,.35]]),...[-.36,-.19,.19,.36].map((x,k)=>[[x-.05,.35],[x-.05,.56-.05*(k%2)],[x+.05,.56-.05*(k%2)],[x+.05,.35]]),...[-.36,-.19,.19,.36].map((x,k)=>ONION(x,.56-.05*(k%2),.15,.26))]},
+ mgu:{n:'Главное здание МГУ',a:'Лев Руднев, 1953',r:1.25,p:[SYM([[0,1],[.012,.84],[.035,.8],[.035,.72],[.07,.72],[.07,.62],[.1,.62],[.1,.38],[.24,.38],[.24,.24],[.36,.24],[.36,.3],[.4,.3],[.4,.16],[.5,.16],[.5,0]])]},
+ ostank:{n:'Останкинская башня',a:'Николай Никитин, 1967',r:.13,p:[SYM([[0,1],[.06,.78],[.1,.66],[.2,.64],[.2,.61],[.08,.6],[.12,.22],[.5,0]])]},
+ shuhov:{n:'Шуховская башня',a:'Владимир Шухов, 1922',r:.34,p:[],shuh:1},
+ spassk:{n:'Спасская башня',a:'Москва, 1491',r:.22,p:[SYM([[0,1],[.06,.9],[.16,.66],[.22,.62],[.22,.54],[.3,.52],[.3,.38],[.5,.36],[.5,0]])]},
+ pisa:{n:'Пизанская башня',a:'Пиза, 1372',r:.26,p:[[[-.42,0],[-.22,1],[.42,1],[.22,0]].map(q=>q)],l:[...[.18,.33,.48,.63,.78,.9].map(v=>[[-.42+.2*v,v],[.22+.2*v,v]])]},
+ bigben:{n:'Биг-Бен',a:'Чарльз Бэрри, Огастес Пьюджин, 1859',r:.17,p:[SYM([[0,1],[.12,.82],[.2,.76],[.28,.7],[.28,.58],[.4,.58],[.4,.48],[.5,.46],[.5,0]])],clock:[0,.64,.16]},
+ piramida:{n:'Пирамида Хеопса',a:'Гиза, около 2560 года до н. э.',r:1.6,p:[[[-.5,0],[0,1],[.5,0]]]},
+ cntower:{n:'Си-Эн Тауэр',a:'Торонто, 1976',r:.12,p:[SYM([[0,1],[.06,.72],[.3,.7],[.3,.64],[.12,.62],[.2,.08],[.5,0]])]}};
+const CITY={'Москва':['spassk','vasiliy','mgu','ostank','shuhov'],'Париж':['eiffel'],'Нью-Йорк':['empire','chrysler'],'Лондон':['bigben','gherkin'],'Дубай':['burj'],'Сидней':['opera'],'Баку':['heydar'],'Бильбао':['guggen'],'Рим':['colos','panth'],'Агра':['taj'],'Куала-Лумпур':['petronas'],'Пиза':['pisa'],'Гиза':['piramida'],'Торонто':['cntower']};
+/* объекты бюро силуэтами: условные, по общему облику объекта */
+const NASH={
+ politeh:{n:'Политехнический музей',a:'Москва; фасады, интерьеры, Музейный парк',r:3.2,p:[[[-.5,0],[-.5,.62],[-.42,.62],[-.42,.7],[-.34,.7],[-.34,.62],[-.08,.62],[-.08,.86],[0,.96],[.08,.86],[.08,.62],[.34,.62],[.34,.7],[.42,.7],[.42,.62],[.5,.62],[.5,0]]],win:{rows:3,cols:26,y0:.1,y1:.55},port:[-.05,.05,.42]},
+ metropol:{n:'Метрополь',a:'Москва, гостиница; свет фасадов',r:2.2,p:[[[-.5,0],[-.5,.7],[-.42,.78],[-.3,.78],[-.3,.7],[-.14,.7],...ARC(0,.7,.14,.16,Math.PI,2*Math.PI,12).map(q=>[q[0],1.4-q[1]]),[.14,.7],[.3,.7],[.3,.78],[.42,.78],[.5,.7],[.5,0]]],win:{rows:4,cols:18,y0:.08,y1:.62}},
+ zaryadye:{n:'Зарядье',a:'Москва, парк',r:3.4,p:[[[-.5,0],[-.5,.2],[-.3,.34],[-.12,.42],[-.02,.48],[.08,.42],[.06,.36],[-.08,.32],[-.28,.18],[-.36,0]],[[.18,0],[.2,.3],[.32,.42],[.46,.36],[.5,.22],[.5,0]]],water:1},
+ erevan:{n:'Ереванская опера',a:'Ереван, театр оперы и балета',r:2.4,p:[[[-.5,0],[-.5,.5],[-.36,.62],[-.2,.66],[-.2,.84],[.2,.84],[.2,.66],[.36,.62],[.5,.5],[.5,0]]],cols:{x0:-.44,x1:.44,n:16,y1:.46}},
+ rostech:{n:'Ростех-Сити',a:'Москва; интерьеры, фасады, территория',r:2.2,p:[[[-.5,0],[-.5,.5],[-.3,.5],[-.3,0]],[[-.26,0],[-.26,.82],[-.04,.82],[-.04,0]],[[0,0],[0,1],[.2,1],[.2,0]],[[.24,0],[.24,.62],[.5,.62],[.5,0]]],win:{rows:8,cols:22,y0:.08,y1:.9}},
+ capital:{n:'Capital Tower',a:'Москва',r:.8,p:[[[-.5,0],[-.5,.78],[-.22,.86],[-.22,0]],[[-.16,0],[-.16,1],[.14,.94],[.14,0]],[[.2,0],[.2,.88],[.5,.8],[.5,0]]]}};
+function drawLM(c,d,cx,gy,H,col,al,stroke){const W=H*d.r,X=u=>cx+u*W,Y=v=>gy-v*H;
+  for(const pg of d.p){const pts=pg.map(q=>[X(q[0]),Y(q[1])]);fl(c,pts,col,Math.max(al,.5)>=.5?1:al);if(stroke)ln(c,[...pts,pts[0]],1.2,col,1)}
+  if(d.shuh){const lv=6;for(let k=0;k<lv;k++){const y0=k/lv,y1=(k+1)/lv,w0=.5-k*.06,w1=.5-(k+1)*.06,wm=(w0+w1)/2*.78;for(let j=-4;j<=4;j++){const u=j/4;ln(c,[[X(u*w0),Y(y0)],[X(-u*wm),Y((y0+y1)/2)],[X(u*w1),Y(y1)]],1,col,.85)}ln(c,[[X(-w1),Y(y1)],[X(w1),Y(y1)]],1.3,col,1)}ln(c,[[X(0),Y(1)],[X(0),Y(1.06)]],1.2,col,1)}
+  if(d.l)for(const s of d.l)ln(c,s.map(q=>[X(q[0]),Y(q[1])]),1,P.paper,.7);
+  if(d.arc){const {rows,cols}=d.arc;for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const u=-.46+.92*(i+.5)/cols,v0=(j+.15)/(rows+.3),v1=v0+.12;dot(c,X(u),Y(v0+.06),Math.max(.8,W/cols*.25),P.paper,.6)}}
+  if(d.cols){const {x0,x1,n,y1}=d.cols;for(let i=0;i<n;i++){const u=x0+(x1-x0)*i/(n-1);ln(c,[[X(u),Y(.02)],[X(u),Y(y1)]],Math.max(1,W/n*.25),P.paper,.55)}}
+  if(d.win){c.save();c.beginPath();for(const pg of d.p){pg.forEach((q,i)=>i?c.lineTo(X(q[0]),Y(q[1])):c.moveTo(X(q[0]),Y(q[1])));c.closePath()}c.clip();const {rows,cols,y0,y1}=d.win;for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const u=-.47+.94*(i+.5)/cols,v=y0+(y1-y0)*(j+.5)/rows;if(hsh(i+j*31,cols)>.12)fl(c,[[X(u-.3/cols),Y(v-.25/rows)],[X(u+.3/cols),Y(v-.25/rows)],[X(u+.3/cols),Y(v+.25/rows)],[X(u-.3/cols),Y(v+.25/rows)]],P.paper,.45)}c.restore()}
+  if(d.port){const [a0,a1,v]=d.port;fl(c,[[X(a0),Y(0)],[X(a0),Y(v)],[X(a1),Y(v)],[X(a1),Y(0)]],P.paper,.4)}
+  if(d.clock)ring(c,X(d.clock[0]),Y(d.clock[1]),d.clock[2]*W,1.2,P.paper,.8);
+  if(d.water){ln(c,[[X(-.5),Y(0)],[X(.5),Y(0)]],1.6,col,1);for(let k=1;k<4;k++)ln(c,[[X(-.36+.04*k),Y(-.05*k)],[X(.18-.04*k),Y(-.05*k)]],1,col,.4)}
+  return W}
+const lmBlocks=(c,x,gy,w,h,r,col)=>{let X=x;while(X<x+w-4){const W=Math.min(x+w-X,r.f(.04,.1)*w),H=h*r.f(.12,.4);fl(c,[[X,gy],[X,gy-H],[X+W-2,gy-H],[X+W-2,gy]],col,.3);X+=W}};
+V.zdanie=function(a,b,x,y,w,h,r,o){const k=r.pick(Object.keys(LMK)),d=LMK[k],gy=y+h-(w>=200&&h>=110?26:6),H=Math.min(h*.86,(w*.86)/d.r);ln(a,[[x,gy],[x+w,gy]],1.2,P.ink,.8);
+  const cx=x+w*r.f(.38,.62),hot=r.b(.25);drawLM(hot?b:a,d,cx,gy,H,hot?P.acc[0]:P.ink,hot?.85:.9,0);o.dots.push([cx,gy-H]);o.trace=o.trace||[[cx-d.r*H/2,gy],[cx,gy-H],[cx+d.r*H/2,gy]];
+  if(w>=200&&h>=110){tx(a,d.n,x+4,y+h-10,11,P.ink,1);tx(a,d.a,x+w-4,y+h-10,9.5,P.soft,1,'right')}};
+V.gorod_mir=function(a,b,x,y,w,h,r,o){const cn=r.pick(Object.keys(CITY)),ks=CITY[cn],lab=w>=200&&h>=110,gy=y+h-(lab?24:6);ln(a,[[x,gy],[x+w,gy]],1.2,P.ink,.8);lmBlocks(a,x,gy,w,h,r.child('b'),P.ink);
+  const tot=ks.reduce((s,k)=>s+LMK[k].r,0),H=Math.min(h*.84,w*.8/Math.max(1,tot*1.15));let X=x+w*.1;const gap=(w*.8-tot*H)/Math.max(1,ks.length);
+  ks.forEach((k,i)=>{const d=LMK[k],W=d.r*H,cx=X+W/2+gap/2,hot=i===0&&r.b(.5);drawLM(hot?b:a,d,cx,gy,H*r.f(.82,1),hot?P.acc[0]:P.ink,.9,0);o.dots.push([cx,gy-H]);X+=W+gap});
+  o.trace=o.trace||[[x,gy],[x+w,gy]];if(lab)tx(a,cn,x+4,y+h-8,11,P.ink,1)};
+V.panorama=function(a,b,x,y,w,h,r,o){const lab=w>=200&&h>=110,gy=y+h-(lab?24:6);ln(a,[[x,gy],[x+w,gy]],1.2,P.ink,.8);const ks=Object.keys(LMK).sort(()=>r.f(-1,1)).slice(0,r.i(4,7));
+  const tot=ks.reduce((s,k)=>s+LMK[k].r,0),H=Math.min(h*.84,w*.94/tot);let X=x+(w-tot*H)/2;ks.forEach((k,i)=>{const d=LMK[k],W=d.r*H,hot=r.b(.15);drawLM(hot?b:a,d,X+W/2,gy,H*(d.r>1?.55:1),hot?P.acc[0]:P.ink,.88,0);X+=W});
+  o.trace=o.trace||[[x,gy],[x+w,gy]];if(lab)tx(a,'Город из великих зданий',x+4,y+h-8,11,P.ink,1)};
+V.nashi=function(a,b,x,y,w,h,r,o){const k=r.pick(Object.keys(NASH)),d=NASH[k],lab=w>=200&&h>=110,gy=y+h-(lab?26:6),H=Math.min(h*.8,(w*.9)/d.r);ln(a,[[x,gy],[x+w,gy]],1.2,P.ink,.8);
+  const cx=x+w/2;drawLM(b,d,cx,gy,H,P.acc[0],.82,0);o.dots.push([cx,gy-H]);o.trace=o.trace||[[cx-d.r*H/2,gy],[cx-d.r*H/2,gy-H*.6],[cx+d.r*H/2,gy-H*.6],[cx+d.r*H/2,gy]];
+  if(lab){tx(a,d.n,x+4,y+h-10,11,P.ink,1);tx(a,d.a,x+w-4,y+h-10,9.5,P.soft,1,'right')}};
+/* портреты архитекторов кодом: узнаются по признакам, которые знают все (очки, шляпа, борода, причёска) */
+const ARH={
+ hadid:{n:'Заха Хадид',y:'1950–2016',hair:'big',brow:2.2,lips:1},
+ foster:{n:'Норман Фостер',y:'род. 1935',hair:'none',sides:1,glass:'thin',neck:'turtle'},
+ corb:{n:'Ле Корбюзье',y:'1887–1965',hair:'back',glass:'round',bow:1},
+ wright:{n:'Фрэнк Ллойд Райт',y:'1867–1959',hat:1,sides:1,cape:1},
+ mies:{n:'Людвиг Мис ван дер Роэ',y:'1886–1969',hair:'back',wide:1,cigar:1},
+ gaudi:{n:'Антонио Гауди',y:'1852–1926',hair:'none',beard:'full'},
+ shuhov:{n:'Владимир Шухов',y:'1853–1939',hair:'part',beard:'trim',must:1},
+ kahn:{n:'Луис Кан',y:'1901–1974',hair:'none',sides:1,glass:'round',bow:1}};
+function face(a,b,cx,cy,s,d,col,hot){const ink=col,rx=s*(d.wide?.42:.36),ry=s*.48,eye=cy-s*.04,acc=hot?P.acc[0]:ink;
+  /* плечи и одежда */
+  const sh=cy+ry+s*.12;ln(a,[[cx-s*.95,cy+s*1.25],[cx-s*.7,sh+s*.05],[cx-s*.2,sh],[cx+s*.2,sh],[cx+s*.7,sh+s*.05],[cx+s*.95,cy+s*1.25]],1.4,ink,.9);
+  if(d.cape)fl(a,[[cx-s*1,cy+s*1.25],[cx-s*.5,sh],[cx+s*.5,sh],[cx+s*1,cy+s*1.25]],ink,.25);
+  if(d.neck==='turtle')fl(a,[[cx-s*.18,cy+ry*.86],[cx+s*.18,cy+ry*.86],[cx+s*.22,sh+s*.06],[cx-s*.22,sh+s*.06]],ink,.55);
+  else{ln(a,[[cx-s*.18,cy+ry*.8],[cx-s*.18,sh]],1.2,ink,.8);ln(a,[[cx+s*.18,cy+ry*.8],[cx+s*.18,sh]],1.2,ink,.8);ln(a,[[cx-s*.18,sh],[cx,sh+s*.18],[cx+s*.18,sh]],1.2,ink,.8)}
+  if(d.bow)fl(b,[[cx-s*.16,sh+s*.02],[cx,sh+s*.08],[cx-s*.16,sh+s*.14]],acc,.95),fl(b,[[cx+s*.16,sh+s*.02],[cx,sh+s*.08],[cx+s*.16,sh+s*.14]],acc,.95);
+  if(d.hair==='big'){const p=[];for(let i=0;i<=30;i++){const t=Math.PI*(1.05+.9*i/30)-Math.PI*.05;p.push([cx+Math.cos(t)*rx*1.55,cy-s*.06+Math.sin(t)*ry*1.25+(i>24||i<6?s*.25:0)])}p.push([cx+rx*1.2,cy+ry*.5],[cx-rx*1.2,cy+ry*.5]);fl(a,p,ink,.85)}
+  /* голова */
+  const hd=[];for(let i=0;i<=36;i++){const t=i/36*Math.PI*2;hd.push([cx+Math.cos(t)*rx*(1-.08*Math.max(0,Math.sin(t))),cy+Math.sin(t)*ry])}fl(a,hd,P.paper,1);ln(b,hd,1.5,ink,1,true);o5.trace=hd;
+  if(d.hair==='back')fl(a,[...ARC(cx,cy-ry*.25,rx*1.02,ry*.8,Math.PI*1.08,Math.PI*1.92,14),[cx+rx*.6,cy-ry*.55],[cx-rx*.6,cy-ry*.55]],ink,.75);
+  if(d.hair==='part'){fl(a,[...ARC(cx,cy-ry*.25,rx*1.02,ry*.8,Math.PI*1.05,Math.PI*1.95,14),[cx+rx*.7,cy-ry*.5],[cx,cy-ry*.72],[cx-rx*.7,cy-ry*.5]],ink,.75)}
+  if(d.sides){fl(a,[[cx-rx*1.02,cy-ry*.1],[cx-rx*.86,cy-ry*.5],[cx-rx*.8,cy+ry*.05]],ink,.35);fl(a,[[cx+rx*1.02,cy-ry*.1],[cx+rx*.86,cy-ry*.5],[cx+rx*.8,cy+ry*.05]],ink,.35)}
+  if(d.hat){fl(b,[[cx-rx*1.9,cy-ry*.5],[cx+rx*1.9,cy-ry*.5],[cx+rx*1.5,cy-ry*.62],[cx+rx*.9,cy-ry*.66],[cx+rx*.9,cy-ry*1.12],[cx-rx*.9,cy-ry*1.12],[cx-rx*.9,cy-ry*.66],[cx-rx*1.5,cy-ry*.62]],acc,.92)}
+  /* лицо */
+  const bw=d.brow||1.3;ln(b,[[cx-rx*.62,eye-s*.1],[cx-rx*.18,eye-s*.12]],bw,ink,1);ln(b,[[cx+rx*.18,eye-s*.12],[cx+rx*.62,eye-s*.1]],bw,ink,1);
+  dot(b,cx-rx*.4,eye,s*.03,ink,1);dot(b,cx+rx*.4,eye,s*.03,ink,1);
+  if(d.glass==='round'){ring(b,cx-rx*.4,eye,s*.12,3,ink,1);ring(b,cx+rx*.4,eye,s*.12,3,ink,1);ln(b,[[cx-rx*.4+s*.12,eye],[cx+rx*.4-s*.12,eye]],2,ink,1)}
+  if(d.glass==='thin'){ring(b,cx-rx*.4,eye,s*.1,1,ink,.9);ring(b,cx+rx*.4,eye,s*.1,1,ink,.9);ln(b,[[cx-rx*.4+s*.1,eye],[cx+rx*.4-s*.1,eye]],1,ink,.9)}
+  ln(a,[[cx,eye+s*.02],[cx-s*.04,eye+s*.2],[cx+s*.03,eye+s*.22]],1.2,ink,.85);
+  const my=eye+s*.33;if(d.lips)fl(b,[[cx-s*.1,my],[cx,my-s*.02],[cx+s*.1,my],[cx,my+s*.04]],acc,.85);else ln(b,[[cx-s*.09,my],[cx+s*.09,my]],1.3,ink,.9);
+  if(d.must)fl(a,[[cx-s*.16,my-s*.02],[cx,my-s*.08],[cx+s*.16,my-s*.02],[cx,my-s*.04]],ink,.8);
+  if(d.beard==='full')fl(b,[[cx-rx*.95,cy],[cx-rx*.7,cy+ry*1.05],[cx,cy+ry*1.35],[cx+rx*.7,cy+ry*1.05],[cx+rx*.95,cy],[cx+rx*.5,my+s*.06],[cx-rx*.5,my+s*.06]],P.dk?'#e8e6e0':'#c9c6bd',.95);
+  if(d.beard==='trim')fl(a,[[cx-rx*.6,my+s*.02],[cx-rx*.3,cy+ry*1.02],[cx,cy+ry*1.12],[cx+rx*.3,cy+ry*1.02],[cx+rx*.6,my+s*.02],[cx,my+s*.08]],ink,.65);
+  if(d.cigar){ln(b,[[cx+s*.08,my+s*.01],[cx+s*.4,my+s*.06]],s*.05,ink,1);dot(b,cx+s*.42,my+s*.06,s*.03,acc,1)}}
+let o5={};
+V.portret=function(a,b,x,y,w,h,r,o){const k=r.pick(Object.keys(ARH)),d=ARH[k],lab=w>=200&&h>=110,s=Math.min(h*(lab?.34:.42),w*.3),cx=x+w*r.f(.3,.7),cy=y+(h-(lab?24:0))*.44;o5=o;
+  face(a,b,cx,cy,s,d,P.ink,r.b(.4));o.dots.push([cx,cy]);if(lab){tx(a,d.n,x+4,y+h-8,11,P.ink,1);tx(a,d.y,x+w-4,y+h-8,9.5,P.soft,1,'right')}};
+/* цитата архитектора: текст из подключённого источника (10.151), рядом портрет, если он есть */
+const ARN=Object.fromEntries(Object.entries(ARH).map(([k,v])=>[v.n,k]));
+V.citata=function(a,b,x,y,w,h,r,o){const pool=QL.filter(q=>q[2]);if(!pool.length)return V.portret(a,b,x,y,w,h,r,o);const aus=[...new Set(pool.map(q=>q[1]))],au0=aus[Math.floor(r.f(0,aus.length-.001))],pa=pool.filter(q=>q[1]===au0),q=pa[Math.floor(r.f(0,pa.length-.001))] /* сначала автор, потом цитата: иначе почти всегда Райт */,k=ARN[q[1]],pw=k&&w>=180?Math.min(w*.3,h*.9):0;
+  if(pw){o5=o;face(a,b,x+pw*.5,y+h*.38,Math.min(pw*.4,h*.3),ARH[k],P.ink,0)}
+  const tx0=x+pw+8,tw=w-pw-12;let px=Math.min(20,h*.16);b.font=FT[1](px);let L=wrap(b,'«'+q[0]+'»',tw);while(L.length*px*1.25>h-22&&px>9){px*=.88;b.font=FT[1](px);L=wrap(b,'«'+q[0]+'»',tw)}L=L.slice(0,Math.max(1,Math.floor((h-22)/(px*1.25))));
+  let yy=y+px+2;for(const l of L){pk(b,tx0,yy,4,px/9);b.save();b.font=FT[1](px);b.fillStyle=P.ink;b.fillText(l,tx0,yy);b.restore();yy+=px*1.25}tx(a,q[1],tx0,y+h-4,10,P.soft,1);o.dots.push([tx0,y+px])};
+const MEAN5={zdanie:'Силуэт известного здания: название, архитектор, год',gorod_mir:'Силуэт мирового города по его знаменитым зданиям',panorama:'Город из великих зданий разных стран',nashi:'Объект бюро силуэтом',portret:'Портрет архитектора, нарисованный кодом',citata:'Цитата архитектора'};
+const AK5={zdanie:'trace',gorod_mir:'trace',panorama:'trace',nashi:'trace',portret:'pulse',citata:'none'};
 /* расчёт числами и сценарии кодом: «кодом, как матрица» (10.110) */
 V.cifry=function(a,b,x,y,w,h,r,o){const cw=r.pick([26,30,34]),ch=17,C=Math.max(3,Math.floor(w/cw)),Rw=Math.max(2,Math.floor(h/ch)),cx=r.f(.2,.8)*C,cy=r.f(.2,.8)*Rw,E0=r.pick([20,50,150,300]);
   for(let j=0;j<Rw;j++)for(let i=0;i<C;i++){const d=Math.hypot((i-cx)/C*2.4,(j-cy)/Rw*2),v=Math.max(1,Math.round(E0*Math.exp(-d*d*1.6))),hot=v>E0*.8,c=hot?b:a;c.save();MONO(c,11);c.globalAlpha=hot?1:.3+.65*Math.min(1,v/E0);c.fillStyle=hot?P.acc[0]:P.ink;c.textAlign='right';c.fillText(String(v),x+(i+1)*cw-4,y+(j+1)*ch-4);c.restore()}
@@ -618,7 +731,7 @@ V.kod=function(a,b,x,y,w,h,r,o){const G1=['фасад','карниз','вход'
   while(yy<y+h-2){let s;if(dep===0){s='сцена «'+r.pick(['вечер','ночь','будни','праздник'])+'» {';dep=1}else if(r.b(.22)){s='}';dep=0}else s=r.b(.55)?r.pick(G1)+': '+r.i(1,10)*10+'%  '+r.pick([2700,3000,4000])+' K':'в '+r.pick(T)+' → '+r.pick(G1)+' '+r.pick(['вкл','выкл','30%','плавно 4 с']);
     const hot=r.b(.14),c=hot?b:a;c.save();MONO(c,11.5);c.globalAlpha=hot?1:.78;c.fillStyle=hot?P.acc[0]:P.ink;c.fillText(s,x+(dep&&s!=='}'&&!s.startsWith('сцена')?16:0),yy);c.restore();yy+=16}
   a.restore();b.restore()};
-const VN=Object.keys(V);
+const VN=Object.keys(V);let VA=VN; /* набор рисунков этажа: 60–70 % арсенала, свой на каждый заход и каждые несколько минут (10.248) */
 /* что значит каждый элемент (10.106): подпись к виду чертежа */
 const MEAN={izolux:'Изолюксы: линии равной освещённости на плоскости',kss:'Кривая силы света светильника',fasad:'Развёртка фасада: какие плоскости получают свет и откуда',razrez:'Разрез: прибор, угол наведения, точка восприятия',sutki:'Сценарий вечера по часам: когда какая группа работает',plan:'План: маршруты людей, приборы, сектор обзора',matrica:'Матрица сценариев: группы светильников и режимы',izometria:'Объёмы объекта в изометрии',spektr:'Шкала цветовой температуры и выбранное значение',profil:'Профиль яркости вдоль фасада',noty:'Партитура света: порядок, в котором вступают группы',uglovye:'Сетка расчётных точек',krivye:'Линии движения людей и места, где они задерживаются',klinya:'Световые пучки: ширина и дальность',cifry:'Расчёт: освещённость в точках сетки, лк',kod:'Сценарии управления светом, записанные кодом',volna:'Световые волны: длина волны и сложение колебаний',zvuk:'Звук: форма сигнала',shrift:'Шрифт: базовая линия, рост строчных и прописных',geom:'Геометрия построения: окружности, оси, пропорции',zhivopis:'Живопись: пятна цвета и тон',skulptura:'Скульптура: форма, которую проявляют свет и тень',marshrut:'Маршрут: откуда человек идёт и что видит по пути',kvartal:'Градостроительство: кварталы, улицы, пустоты',lyudi:'Социология: когда и сколько людей бывает в этом месте',ferma:'Инженерия: конструкция и точки крепления приборов',shema:'Технология: схема управления, узлы и связи',stih:'Стихи о свете и архитектуре',prelom:'Физика света: преломление луча на границе сред',teplo:'Строительная физика: слои стены и ход температуры',kadr:'Видео: кадры и линия времени',set:'Социальные сети: люди и связи между ними',scena:'Театр: сцена, приборы над ней, зрители',orkestr:'Оркестр: рассадка групп и место дирижёра',kafe:'Кафе: столы и пятна света над ними',puls:'Эмоции: как меняется состояние человека за вечер',dvoe:'Семья и любовь: круги света, которые сходятся',dialux:'Расчёт в DIALux: освещённость плоскости в условных цветах, лк',karkas:'Трёхмерная модель: сетка объекта в окне моделирования',neiro:'Искусственный интеллект: слои нейронной сети',shum:'Генерация: изображение проступает из шума',foto:'Съёмка: кадр, точка фокуса, экспозиция',ekspoz:'Экспозиция: с каких сторон и насколько объект на виду',rakurs:'Ракурсы раскрытия: откуда объект открывается зрителю',svetilnik:'Устройство светильника: корпус, источник света, отражатель, стекло',uzel:'Узел крепления: чертёж с размерами',luch:'Луч: угол, дальность, пятно света',mokap:'Мокап: проба света на объекте до закупки',istoriya:'История и контекст объекта',obraz:'Эмоционально-стилистический образ: настроение, цвет, слово'};
 const AK={izolux:'trace',kss:'trace',fasad:'blink',razrez:'trace',sutki:'play',plan:'trace',matrica:'blink',izometria:'pulse',spektr:'play',profil:'trace',noty:'play',uglovye:'blink',krivye:'trace',klinya:'play',cifry:'blink',kod:'cursor',volna:'trace',zvuk:'play',shrift:'play',geom:'trace',zhivopis:'blink',skulptura:'trace',marshrut:'trace',kvartal:'blink',lyudi:'play',ferma:'trace',shema:'trace',stih:'none',prelom:'trace',teplo:'trace',kadr:'play',set:'pulse',scena:'pulse',orkestr:'trace',kafe:'pulse',puls:'trace',dvoe:'pulse',dialux:'pulse',karkas:'trace',neiro:'trace',shum:'play',foto:'pulse',ekspoz:'trace',rakurs:'trace',svetilnik:'trace',uzel:'pulse',luch:'trace',mokap:'trace',istoriya:'trace',obraz:'blink'};
@@ -632,7 +745,7 @@ const DBL=()=>!(innerWidth<=820&&innerHeight>innerWidth),pairOf=fl=>DBL()&&fl.db
 function layout(fl){const r=new R(fl.seed).child('polotno'),G=fl.G,low=G.title==='bottom',bt=low?Y0:Y0+TS,bb=low?Y1-TS:Y1,n=Math.max(2,Math.min(4,r.i(G.bands[0],G.bands[1]))),ws=[];let sum=0;for(let j=0;j<n;j++){const q=r.f(.7,1.4);ws.push(q);sum+=q}
   const edges=[];let acc=0;for(let j=0;j<=n;j++){const out=j===0||j===n;edges.push({y:bt+(bb-bt)*acc/sum,A:out?r.f(1,3):r.f(3,12),k:r.i(1,3),p:r.f(0,6.28)});acc+=ws[j]||0}
   const mk=(t,len,name,j,lite)=>({t0:t,len,name,seed:r.i(1,2e9),rt:r.b(.5)?r.f(-.03,.03):0,hand:r.b(G.hand),rest:r.b(lite?.15:.03),an:r.b(.5),c:r.i(0,5),j,lite});
-  const bands=[];for(let j=0;j<n;j++){const runs=[];let t=r.f(0,1),end=t+N,prev='';while(t<end-.01){let len=r.f(.4,1.35);if(end-t-len<.4)len=end-t;const ii=mod(Math.round(t+len/2),N),s=fl.slots[ii]||(fl.dbl[ii]!=null?fl.slots[fl.dbl[ii]]:null);let name;if(s&&s.v[j]&&s.v[j]!==prev&&r.b(.7))name=s.v[j];else if(G.theme&&G.theme!==prev&&r.b(.25))name=G.theme;else name=r.pick(VN.filter(q=>q!==prev));prev=name;runs.push(mk(t,len,name,j,0));t+=len}bands.push(runs)}
+  const bands=[];for(let j=0;j<n;j++){const runs=[];let t=r.f(0,1),end=t+N,prev='';while(t<end-.01){let len=r.f(.4,1.35);if(end-t-len<.4)len=end-t;const ii=mod(Math.round(t+len/2),N),s=fl.slots[ii]||(fl.dbl[ii]!=null?fl.slots[fl.dbl[ii]]:null);let name;if(s&&s.v[j]&&s.v[j]!==prev&&r.b(.7))name=s.v[j];else if(G.theme&&G.theme!==prev&&r.b(.25))name=G.theme;else name=r.pick((fl.VA||VN).filter(q=>q!==prev));prev=name;runs.push(mk(t,len,name,j,0));t+=len}bands.push(runs)}
   const tr=[],cs=[...fl.content].sort((p,q)=>p-q);cs.forEach((q,ix)=>{const two=fl.dbl[mod(q+1,N)]===q;tr.push({t0:q-.5,len:two?2:1,title:q,seed:r.i(1,2e9)});let t=q+(two?1.5:.5);const e=(ix<cs.length-1?cs[ix+1]:cs[0]+N)-.5;while(e-t>.3){let len=Math.min(e-t,r.f(.6,1.6));if(e-t-len<.4)len=e-t;tr.push(mk(t,len,r.pick(['noty','klinya','krivye','profil','kod','cifry','spektr','matrica','uglovye','stih','stih','shrift','volna','zvuk','zodchie','cirkad','ekonom','elektro','material','teoria']),-1,1));t+=len}});
   const lines=[];for(let q=0;q<r.i(9,16);q++){const y0=r.f(Y0+20,Y1-20);lines.push({t0:r.f(0,N),len:r.f(1.2,4),y0,y1:y0+r.f(-150,150),acc:r.b(.3)?r.i(0,5):-1})}
   const clouds=[];for(let q=0;q<r.i(9,14);q++)clouds.push({t:r.f(0,N),y:r.f(Y0+60,Y1-60),n:r.i(40,140),seed:r.i(1,2e9)});
@@ -640,7 +753,7 @@ function layout(fl){const r=new R(fl.seed).child('polotno'),G=fl.G,low=G.title==
   return{low,n,edges,bands,tr,lines,clouds,top:rim(),bot:rim()}}
 
 /* сегмент круга: слой a (тонкое), слой b (главное и названия). Возвращает зоны нажатия и данные анимации */
-function drawSheet(fl,i,ca,cb,k){P=fl.P;G=fl.G;HAND=0;
+function drawSheet(fl,i,ca,cb,k){P=fl.P;G=fl.G;HAND=0;VA=fl.VA||VN;
   const a=ca.getContext('2d'),b=cb.getContext('2d');for(const c of[a,b]){c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,ca.width,ca.height);c.setTransform(k,0,0,k,0,0)}
   const rec=k<1.5;if(rec){PLK={p:[],s:[]};PKS=k;PKB=b}const L=fl.L,o={hits:[],an:[]},th0=i-.5,wl=(e,y)=>{const p=[];for(let x=0;x<=SW;x+=16)p.push([x,y+eY(e,th0+x/SW)-e.y]);return p};
   ln(a,wl(L.top,Y0-12),1,P.ink,.8);ln(a,wl(L.bot,Y1+12),1,P.ink,.8);
@@ -652,7 +765,7 @@ function drawSheet(fl,i,ca,cb,k){P=fl.P;G=fl.G;HAND=0;
     const cx=x+w/2,cy=y+h/2,o2={trace:null,dots:[]};HAND=mn;SHD=sh?1:0;for(const c of[a,b]){c.save();c.translate(cx,cy);c.rotate(q.rt);c.translate(-cx,-cy)}
     V[q.name](a,b,x+10,y+12,w-20,h-24,r.child('p'),o2);
     for(let m=0;m<r.i(1,3);m++)note(a,r.pick(NOTES),x+r.f(14,Math.max(16,w-130)),y+r.f(22,Math.max(24,h-10)),r.f(10.5,13),P.soft,.95,r.f(-.12,.12));
-    if(!q.lite&&r.b(.7)){const w2=(w-20)*r.f(.25,.45),h2=(h-24)*r.f(.4,.6);V[r.pick(VN.filter(m=>m!==q.name))](a,b,x+10+r.f(0,w-20-w2),y+12+r.f(0,h-24-h2),w2,h2,r.child('s'),{dots:[]})}
+    if(!q.lite&&r.b(.7)){const w2=(w-20)*r.f(.25,.45),h2=(h-24)*r.f(.4,.6);V[r.pick(VA.filter(m=>m!==q.name))](a,b,x+10+r.f(0,w-20-w2),y+12+r.f(0,h-24-h2),w2,h2,r.child('s'),{dots:[]})}
     a.restore();b.restore();HAND=0;SHD=0;
     if(q.an){const cs=Math.cos(q.rt),sn=Math.sin(q.rt),tf=m=>[cx+(m[0]-cx)*cs-(m[1]-cy)*sn,cy+(m[0]-cx)*sn+(m[1]-cy)*cs],ra=r.child('an');let kd=AK[q.name]||'play';const A={k:kd,c:q.c,ph:ra.f(0,1),sp:ra.f(.12,.26),x0:x+10,x1:x+w-10,y0:y+12,y1:y+h-12};
       if(kd==='trace'){if(o2.trace)A.tr=o2.trace.map(tf);else A.k='play'}
@@ -674,8 +787,8 @@ function drawSheet(fl,i,ca,cb,k){P=fl.P;G=fl.G;HAND=0;
   if(rec){const B=[...Array(SW)].map(()=>[]);for(const q of PLK.p){const xx=Math.floor(q[0]);if(xx>=0&&xx<SW&&q[1]>0&&q[1]<SH)B[xx].push(q)}o.pl={B,S:PLK.s.filter(q=>q.x1>0&&q.x0<SW)};PLK=null}
   return o}
 
-Object.assign(MEAN,MEAN4);Object.assign(AK,AK4);
-window.__vt=(names,dk,cw,ch,seed)=>{const cols=Math.max(1,Math.floor(1400/(cw+20))),rows=Math.ceil(names.length/cols),ca=document.createElement("canvas");ca.width=cols*(cw+20)+20;ca.height=rows*(ch+44)+20;const c=ca.getContext("2d");P=dk?{ink:"#f1efe9",soft:"#9aa0a8",acc:["#ffb648","#6fb0ff","#ff7a59"],dk:1}:{ink:"#15171c",soft:"#6b7078",acc:["#d9622b","#2b6fd9","#e0b030"]};G={lw:1,fill:dk?"hatch":"solid",bands:[2,3],theme:null,title:"top",dots:false,num:false,hand:.3};HAND=window.__mn||0;SHD=window.__sh||0;c.fillStyle=dk?"#101216":"#f4f2ec";c.fillRect(0,0,ca.width,ca.height);names.forEach((n,i)=>{const x=20+(i%cols)*(cw+20),y=20+Math.floor(i/cols)*(ch+44);c.save();c.strokeStyle=P.soft;c.globalAlpha=.25;c.strokeRect(x,y,cw,ch);c.restore();V[n](c,c,x,y,cw,ch,new R((seed||7)*31+i),{dots:[]});c.fillStyle=P.soft;c.font="12px sans-serif";c.fillText(n+": "+MEAN[n],x,y+ch+16,cw)});HAND=0;SHD=0;return ca.toDataURL("image/jpeg",.9)};
+Object.assign(MEAN,MEAN4,MEAN5);Object.assign(AK,AK4,AK5);
+window.__vt=(names,dk,cw,ch,seed)=>{const cols=Math.max(1,Math.floor(1400/(cw+20))),rows=Math.ceil(names.length/cols),ca=document.createElement("canvas");ca.width=cols*(cw+20)+20;ca.height=rows*(ch+44)+20;const c=ca.getContext("2d");P=dk?{ink:"#f1efe9",soft:"#9aa0a8",paper:"#101216",acc:["#ffb648","#6fb0ff","#ff7a59"],dk:1}:{ink:"#15171c",soft:"#6b7078",paper:"#f4f2ec",acc:["#d9622b","#2b6fd9","#e0b030"]};G={lw:1,fill:dk?"hatch":"solid",bands:[2,3],theme:null,title:"top",dots:false,num:false,hand:.3};HAND=window.__mn||0;SHD=window.__sh||0;c.fillStyle=dk?"#101216":"#f4f2ec";c.fillRect(0,0,ca.width,ca.height);names.forEach((n,i)=>{const x=20+(i%cols)*(cw+20),y=20+Math.floor(i/cols)*(ch+44);c.save();c.strokeStyle=P.soft;c.globalAlpha=.25;c.strokeRect(x,y,cw,ch);c.restore();V[n](c,c,x,y,cw,ch,new R((seed||7)*31+i),{dots:[]});c.fillStyle=P.soft;c.font="12px sans-serif";c.fillText(n+": "+MEAN[n],x,y+ch+16,cw)});HAND=0;SHD=0;return ca.toDataURL("image/jpeg",.9)};
 /* ---------- этажи: разделы сайта (docs/65, решение 6.13) ---------- */
 const FL=[
  {name:'Главная',items:S},
@@ -742,7 +855,7 @@ for(let k=0;k<3;k++){const fl={f:null,g:new THREE.Group(),sheets:[],th:0,vth:0,s
   pool.push(fl)}
 function assign(fl,f){fl.f=f;const sec=FL[mod(f,NF)];fl.sec=mod(f,NF);fl.name=sec.name;fl.seed=new R(seed).child('etazh-'+f).s;
   const r=new R(fl.seed),g=r.child('stil');fl.P=mkLight(r.child('svet'),f===0);fl.G={lw:g.pick([.8,1,1,1.5]),fill:g.pick(['solid','solid','hatch','outline']),bands:g.pick([[2,3],[2,3],[3,4],[3,4]]),theme:g.b(.4)?g.pick(VN):null,title:g.pick(['top','top','bottom']),dots:g.b(.25),num:false,hand:g.pick([.15,.3,.5,.8])};fl.dir=-1;fl.sp=g.f(.018,.052);
-  fl.slots=Array(N).fill(null);fl.content=[];const n=sec.items.length;sec.items.forEach((it,j)=>{const q=Math.round(j*N/n)%N;fl.slots[q]=it;fl.content.push(q)});fl.dbl={};fl.content.forEach(q=>{const c=mod(q+1,N);if(!fl.slots[c])fl.dbl[c]=q});fl.L=layout(fl);
+  {const ra=new R(fl.seed^fnv('arsenal-'+Math.floor(Date.now()/240000))),sh=VN.slice().sort(()=>ra.f(-1,1));fl.VA=sh.slice(0,Math.round(VN.length*ra.f(.6,.7)))}fl.slots=Array(N).fill(null);fl.content=[];const n=sec.items.length;sec.items.forEach((it,j)=>{const q=Math.round(j*N/n)%N;fl.slots[q]=it;fl.content.push(q)});fl.dbl={};fl.content.forEach(q=>{const c=mod(q+1,N);if(!fl.slots[c])fl.dbl[c]=q});fl.L=layout(fl);
   fl.sel=fl.content[0];fl.th=-selA(fl)+(f===0?0:g.f(-.2,.2));fl.vth=0;fl.snap=false;fl.thA=null;
   fl.queue=[...Array(N).keys()].sort((p,q)=>Math.abs(norm((p-fl.sel)*STEP))-Math.abs(norm((q-fl.sel)*STEP)));for(const s of fl.sheets){s.drawn=false;s.op=0;s.pop=0;s.ma.material.map=s.ta;s.mb.material.map=s.tb;s.mp.material.color.set(fl.P.paper)}if(hi.fl===fl){hi.fl=null;hi.i=-1}}
 const floorOf=f=>pool.find(q=>q.f===f);
@@ -1211,7 +1324,7 @@ function frame(){requestAnimationFrame(frame);if(!innerWidth||!innerHeight)retur
     for(const s of fl.sheets){const an=s.i*STEP+fl.th,nx=Math.sin(an),nz=Math.cos(an);v3.set(nx*Rc,fy,nz*Rc);const dist=v3.distanceTo(cp);v3.sub(cp).normalize();s.face=-(v3.x*nx+v3.z*nz);
       const dd=Math.abs(norm(an)),w=Math.max(0,1-dd/(STEP*.75));
       const has=!!fl.slots[s.i],mT=0;s.mini=(s.mini||0)+(mT-(s.mini||0))*Math.min(1,dt*5);const pr=pairOf(fl),inP=s.i===fl.sel||(pr&&s.i===mod(fl.sel+1,N)),wP=pr?Math.max(0,1-Math.abs(norm(selA(fl)+fl.th))/(STEP*.75)):w;const pT=(M||!isC)?0:Math.max(inP?sm(wP):0,(inP&&hov&&hov.fl===fl&&(hov===s||(pr&&(hov.i===fl.sel||hov.i===mod(fl.sel+1,N)))))?1.1:0)*(1-ax)*near*(1-.6*tq);s.pop+=(pT-s.pop)*Math.min(1,dt*7);
-      let op=s.face>0?.9+.1*Math.min(1,s.face*1.6):.16+.2*Math.min(1,Math.max(0,(ta-.25)/.5));
+      let op=s.face>0?(.9+.1*Math.min(1,s.face*1.6))*(.32+.68*sm(Math.min(1,Math.max(0,(s.face-.06)/.62)))):.16+.2*Math.min(1,Math.max(0,(ta-.25)/.5)); /* к краям сегменты тают сильнее, но не пропадают (10.249) */
       if(!s.cl){s.cl=1;for(const m of[s.mp,s.ma,s.mb,s.ml])m.material.clippingPlanes=CLP}
       if(M){if(isC)op=s.face>0?.92:.36}else{if(s.face>0)op*=1-.5*tq;if(isC&&!inP){const nb=fl.sheets[fl.sel].pop;if(Math.abs(norm((s.i-fl.sel)*STEP))<STEP*1.1)op*=1-.6*Math.min(1,nb)}op*=.5+.5*Math.max(near,ax)}
       if(!s.drawn)op=0;s.op+=(op-s.op)*Math.min(1,dt*6);
