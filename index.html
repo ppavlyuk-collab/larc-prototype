@@ -300,6 +300,43 @@ V.klinya=function(a,b,x,y,w,h,r,o){ln(a,[[x,y+6],[x+w,y+6]],1,P.ink,.6);for(let 
   const n=r.i(3,6);for(let k=0;k<n;k++){const x0=x+w*r.f(0,.6),x1=x0+w*r.f(.2,.45),yy=y+18+(h-24)*(k+.5)/n,t0=r.f(1,(h/n)*.45),t1=r.f(0,(h/n)*.45),sk=r.f(-10,10),col=r.b(.35)?r.pick(P.acc):P.ink;
     if(r.b(.6))fl(b,[[x0,yy-t0],[x1,yy-t1+sk],[x1,yy+t1+sk],[x0,yy+t0]],col,.92);else for(let j=0;j<7;j++)ln(a,[[x0,yy-t0+j*t0*2/6],[x1,yy-t1+sk+j*t1*2/6]],1.1,col,.8)}
   for(let k=0;k<r.i(1,3);k++){const X=x+w*r.f(.1,.8),Y=y+h*r.f(.2,.8),W2=w*r.f(.08,.2);fl(b,[[X,Y],[X+W2,Y+r.f(-6,6)],[X+W2,Y+10+r.f(-3,3)],[X,Y+8]],r.pick(P.acc),.9)}};
+/* перевод цитат архитекторов на русский (10.250): перевод бюро; цитата показывается, только если её перевод есть, остальные с источника пропускаются */
+const QTR={
+"Une maison est une machine-à-habiter.": "Дом – это машина для жилья.",
+"It is a question of building which is at the root of the social unrest of today: architecture or revolution.": "Всё упирается в строительство: оно лежит в основе нынешних социальных потрясений. Архитектура или революция.",
+"Modern life demands, and is waiting for, a new kind of plan, both for the house and the city.": "Современная жизнь требует нового плана и для дома, и для города, и ждёт его.",
+"Space and light and order. Those are the things that men need just as much as they need bread or a place to sleep.": "Пространство, свет и порядок. Человеку они нужны так же, как хлеб или место для сна.",
+"Vous savez, c'est la vie qui a raison, l'architecte qui a tort.": "Знаете, права жизнь, а ошибается архитектор.",
+"A hundred times I have thought: New York is a catastrophe, and fifty times: it is a beautiful catastrophe.": "Сто раз я думал: Нью-Йорк – это катастрофа, и пятьдесят раз: это прекрасная катастрофа.",
+"No house should ever be on a hill or on anything. It should be of the hill. Belonging to it. Hill and house should live together each the happier for the other.": "Дом никогда не должен стоять на холме или на чём-либо. Он должен быть частью холма. Холм и дом должны жить вместе, и каждому от этого лучше.",
+"Every great architect is – necessarily – a great poet. He must be a great original interpreter of his time, his day, his age.": "Всякий великий архитектор непременно великий поэт. Он должен быть самобытным толкователем своего времени, своего дня, своей эпохи.",
+"The physician can bury his mistakes, but the architect can only advise his clients to plant vines.": "Врач может похоронить свои ошибки, а архитектор может лишь посоветовать заказчику посадить вьющиеся растения.",
+"Nature is all the body of God we mortals will ever see.": "Природа – это всё тело Бога, которое мы, смертные, когда-либо увидим.",
+"Architecture is life, or at least it is life itself taking form and therefore it is the truest record of life as it was lived in the world yesterday, as it is lived today or ever will be lived.": "Архитектура – это жизнь, по меньшей мере сама жизнь, обретающая форму; поэтому она правдивее всего рассказывает, как жили вчера, как живут сегодня и как будут жить.",
+"Study nature, love nature, stay close to nature. It will never fail you.": "Изучайте природу, любите природу, будьте ближе к природе. Она никогда вас не подведёт.",
+"The thing always happens that you really believe in; and the belief in a thing makes it happen.": "Сбывается то, во что по-настоящему веришь: вера в дело и делает его.",
+"Creation is not only rare but always hazardous. Always was.": "Творчество не только редкость, но и всегда риск. Так было всегда.",
+"Architecture is intrinsic to Time, Place and Man.": "Архитектура неотделима от времени, места и человека.",
+"As melody is in music ornament is in architecture revelation of the poetic-principle, with character and significance.": "Чем мелодия в музыке, тем орнамент в архитектуре: в нём раскрывается поэтическое начало, его характер и смысл.",
+"Great art has always, at first, been controversial. Now that our means of communication have multiplied, how much more so today?": "Большое искусство поначалу всегда вызывало споры. А сегодня, когда средств связи стало больше, тем более.",
+"Resemblances are mistaken for influences.": "Сходство принимают за влияние.",
+"All fine architectural values are human values, else not valuable.": "Все подлинные ценности архитектуры – это человеческие ценности, иначе они ничего не стоят.",
+"The present is the ever moving shadow that divides yesterday from tomorrow. In that lies hope.": "Настоящее – это вечно движущаяся тень, которая отделяет вчера от завтра. В этом надежда.",
+"I don´t want to be interesting, I want to be good.": "Я не хочу быть интересным, я хочу быть хорошим.",
+"Architecture is the will of an epoch translated into space.": "Архитектура – это воля эпохи, переведённая в пространство.",
+"Architecture starts when you carefully put two bricks together. There it begins.": "Архитектура начинается, когда вы аккуратно кладёте вместе два кирпича. Вот там она и начинается.",
+"The straight line belongs to Man. The curved line belongs to God.": "Прямая линия принадлежит человеку, кривая – Богу.",
+"It's funny, the power of beauty, to make us forget such injustice. É estranho o poder da beleza, que nos faz esquecer tanta injustiça.": "Удивительна сила красоты: она заставляет забыть столько несправедливости.",
+"My work is not about \"form follows function,\" but \"form follows beauty\" or, even better, \"form follows feminine.\"": "Для меня главное не «форма следует функции», а «форма следует красоте», а ещё лучше «форма следует женственному».",
+"I was attracted by the curve – the liberated, sensual curve suggested by the possibilities of new technology yet so often recalled in venerable old baroque churches.": "Меня привлекала кривая: свободная, чувственная, которую подсказывали возможности новой техники и которую так часто можно увидеть в старинных барочных храмах.",
+"I had some good opportunities. I was lucky to have had the chance to do things differently. Architecture is about surprise.": "Мне выпадали хорошие возможности. Мне повезло делать по-другому. Архитектура – это удивление.",
+"My ambition has always been to reduce a building’s support to a minimum. The more we diminish supporting structures, the more audacious and important the architecture is. That has been my life’s work.": "Я всегда стремился свести опоры здания к минимуму. Чем меньше несущих конструкций, тем смелее и значительнее архитектура. Этому я посвятил жизнь.",
+"Architecture was my way of expressing my ideals: to be simple, to create a world equal to everyone, to look at people with optimism, that everyone has a gift. I don’t want anything but general happiness. Why is that bad?": "Архитектура была моим способом выразить свои идеалы: быть простым, создавать мир, равный для всех, смотреть на людей с оптимизмом, верить, что у каждого есть дар. Я не хочу ничего, кроме всеобщего счастья. Что в этом плохого?",
+"Architecture should speak of its time and place, but yearn for timelessness.": "Архитектура должна говорить о своём времени и месте, но стремиться к вневременному.",
+"Life is chaotic, dangerous, and surprising. Buildings should reflect that.": "Жизнь хаотична, опасна и полна неожиданностей. Здания должны это отражать.",
+"[ Brancusi ] has had more influence on my work than most architects.": "Бранкузи повлиял на мою работу сильнее, чем большинство архитекторов.",
+"I think my best skill as an architect is the achievement of hand-to-eye coordination. I am able to transfer a sketch into a model into the building.": "Моё лучшее умение как архитектора – связь руки и глаза. Я умею перенести эскиз в макет, а макет в здание."
+};
 /* темы шире светотехники (10.119): волны, звук, шрифт, геометрия, живопись, скульптура, маршрут, город, люди, конструкция, схема */
 V.volna=function(a,b,x,y,w,h,r,o){const cy=y+h/2,f1=r.f(3,7),f2=f1*r.f(1.1,1.5),A=h*.22,ph=r.f(0,6),P1=[],P2=[],PS=[];for(let t=0;t<=120;t++){const u=t/120,s1=Math.sin(u*f1*6.28+ph),s2=Math.sin(u*f2*6.28);P1.push([x+w*u,cy+s1*A]);P2.push([x+w*u,cy+s2*A]);PS.push([x+w*u,cy+(s1+s2)*A*.9])}
   ln(a,[[x,cy],[x+w,cy]],1,P.ink,.4);ln(a,P1,1,P.ink,.45);ln(a,P2,1,P.acc[0],.6);ln(b,PS,1.8,P.ink);o.trace=o.trace||PS;const L=w/f1;ln(a,[[x+L*.25,cy-A-10],[x+L*1.25,cy-A-10]],1,P.soft);tx(a,'λ = '+r.pick([450,520,555,590,630])+' нм',x+L*.3,cy-A-15,9.5,P.soft)};
@@ -390,7 +427,7 @@ function qParseEn(t,au){const w=t.split(/==\s*(Quotes about|Misattributed|Disput
   return w.split('\n').filter(l=>/^\* [^*]/.test(l)).map(l=>cl(l.slice(2))).filter(s=>s.length>30&&s.length<230).map(s=>[s,au,1])}
 const qGet=(site,t)=>fetch('https://'+site+'.wikiquote.org/w/api.php?action=parse&page='+encodeURIComponent(t)+'&prop=wikitext&format=json&redirects=1&origin=*').then(r=>r.json());
 window.__ql=QL;window.__qready=(async()=>{for(const t of QT){try{const d=await qGet('ru',t);QL.push(...qParse(d.parse.wikitext['*']))}catch(e){}await new Promise(r=>setTimeout(r,250))}
-  for(const [site,t,au] of QA){try{const d=await qGet(site,t);if(d.parse){const w=d.parse.wikitext['*'];if(site==='ru')QL.push(...qParse(w).map(q=>au?[q[0],au,1]:(Object.values(ARH).some(v=>v.n===q[1])?[q[0],q[1],1]:q)));else QL.push(...qParseEn(w,au))}}catch(e){}await new Promise(r=>setTimeout(r,350))}})();
+  for(const [site,t,au] of QA){try{const d=await qGet(site,t);if(d.parse){const w=d.parse.wikitext['*'];if(site==='ru')QL.push(...qParse(w).map(q=>au?[q[0],au,1]:(Object.values(ARH).some(v=>v.n===q[1])?[q[0],q[1],1]:q)));else QL.push(...qParseEn(w,au).filter(q=>QTR[q[0]]).map(q=>[QTR[q[0]],q[1],1]))}}catch(e){}await new Promise(r=>setTimeout(r,350))}})();
 V.stih=function(a,b,x,y,w,h,r,o){const f=r.b(.35)?4:1;let lines,au;if(QL.length){const q=QL[Math.floor(r.f(0,QL.length-.001))];au=q[1];let px0=Math.min(24,h*.2);b.font=FT[f](px0);lines=wrap(b,q[0],w-10);if(lines.length*px0*1.25>h-22){px0*=.8;b.font=FT[f](px0);lines=wrap(b,q[0],w-10)}lines=lines.slice(0,Math.max(1,Math.floor((h-22)/(px0*1.25))))}else{const q=r.pick(STIH);lines=q[0];au=q[1]}
   const n=lines.length;let px=Math.min(30,(h-26)/(n*1.25));b.save();b.fillStyle=P.ink;for(let g=0;g<8;g++){b.font=FT[f](px);if(Math.max(...lines.map(s=>b.measureText(s).width))<=w-8)break;px*=.9}
   const y0=y+(h-n*px*1.25-16)/2+px;lines.forEach((s,i)=>b.fillText(s,x+4,y0+i*px*1.25));b.restore();const H0=HAND;HAND=0;tx(a,au,x+4,y0+n*px*1.25+2,10.5,P.soft);HAND=H0;ln(a,[[x+4,y0-px-6],[x+34,y0-px-6]],1,P.acc[0])};
@@ -719,7 +756,7 @@ V.portret=function(a,b,x,y,w,h,r,o){const k=r.pick(Object.keys(ARH)),d=ARH[k],la
 const ARN=Object.fromEntries(Object.entries(ARH).map(([k,v])=>[v.n,k]));
 V.citata=function(a,b,x,y,w,h,r,o){const pool=QL.filter(q=>q[2]);if(!pool.length)return V.portret(a,b,x,y,w,h,r,o);const aus=[...new Set(pool.map(q=>q[1]))],au0=aus[Math.floor(r.f(0,aus.length-.001))],pa=pool.filter(q=>q[1]===au0),q=pa[Math.floor(r.f(0,pa.length-.001))] /* сначала автор, потом цитата: иначе почти всегда Райт */,k=ARN[q[1]],pw=k&&w>=180?Math.min(w*.3,h*.9):0;
   if(pw){o5=o;face(a,b,x+pw*.5,y+h*.38,Math.min(pw*.4,h*.3),ARH[k],P.ink,0)}
-  const tx0=x+pw+8,tw=w-pw-12;let px=Math.min(20,h*.16);b.font=FT[1](px);let L=wrap(b,'«'+q[0]+'»',tw);while(L.length*px*1.25>h-22&&px>9){px*=.88;b.font=FT[1](px);L=wrap(b,'«'+q[0]+'»',tw)}L=L.slice(0,Math.max(1,Math.floor((h-22)/(px*1.25))));
+  const tx0=x+pw+8,tw=w-pw-12;const qt='«'+q[0].replace(/«/g,'„').replace(/»/g,'“')+'»';let px=Math.min(20,h*.16);b.font=FT[1](px);let L=wrap(b,qt,tw);while(L.length*px*1.25>h-22&&px>9){px*=.88;b.font=FT[1](px);L=wrap(b,qt,tw)}L=L.slice(0,Math.max(1,Math.floor((h-22)/(px*1.25))));
   let yy=y+px+2;for(const l of L){pk(b,tx0,yy,4,px/9);b.save();b.font=FT[1](px);b.fillStyle=P.ink;b.fillText(l,tx0,yy);b.restore();yy+=px*1.25}tx(a,q[1],tx0,y+h-4,10,P.soft,1);o.dots.push([tx0,y+px])};
 const MEAN5={zdanie:'Силуэт известного здания: название, архитектор, год',gorod_mir:'Силуэт мирового города по его знаменитым зданиям',panorama:'Город из великих зданий разных стран',nashi:'Объект бюро силуэтом',portret:'Портрет архитектора, нарисованный кодом',citata:'Цитата архитектора'};
 const AK5={zdanie:'trace',gorod_mir:'trace',panorama:'trace',nashi:'trace',portret:'pulse',citata:'none'};
