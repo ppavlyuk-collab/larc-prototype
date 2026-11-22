@@ -206,7 +206,8 @@ let G={lw:1,fill:'solid',bands:[2,3],theme:null,title:'top',dots:false,num:false
 let P=mkLight(new R(1)),HAND=0;
 
 /* ---------- графические языки ---------- */
-const SW=640, SH=960;
+/* на компьютере и в горизонтальном телефоне сегмент один, двойного формата (10.206, 10.215, 10.216, 10.255): одно полотно шириной в две половинки. В вертикальном телефоне половинка */
+const WIDE=!(innerWidth<=820&&innerHeight>innerWidth), WK=WIDE?2:1, SW=640*WK, SH=960;
 const FT=[px=>`400 ${px}px Geist,system-ui,sans-serif`,px=>`italic 400 ${px}px "EB Garamond",Georgia,serif`,px=>`600 ${px}px Geist,system-ui,sans-serif`,px=>`400 ${px}px "JetBrains Mono",ui-monospace,monospace`,px=>`700 ${px}px "Amatic SC","Arial Narrow",sans-serif`];
 const F=(c,px,w=400)=>{c.font=w>=600?FT[2](px):FT[0](px)};
 const MONO=(c,px)=>{c.font=FT[3](px)};
@@ -800,9 +801,9 @@ const DBL=()=>!(innerWidth<=820&&innerHeight>innerWidth),pairOf=fl=>DBL()&&fl.db
 function layout(fl){const r=new R(fl.seed).child('polotno'),G=fl.G,low=G.title==='bottom',bt=low?Y0:Y0+TS,bb=low?Y1-TS:Y1,n=Math.max(2,Math.min(4,r.i(G.bands[0],G.bands[1]))),ws=[];let sum=0;for(let j=0;j<n;j++){const q=r.f(.7,1.4);ws.push(q);sum+=q}
   const edges=[];let acc=0;for(let j=0;j<=n;j++){const out=j===0||j===n;edges.push({y:bt+(bb-bt)*acc/sum,A:out?r.f(1,3):r.f(3,12),k:r.i(1,3),p:r.f(0,6.28)});acc+=ws[j]||0}
   const mk=(t,len,name,j,lite)=>({t0:t,len,name,seed:r.i(1,2e9),rt:r.b(.5)?r.f(-.03,.03):0,hand:r.b(G.hand),rest:r.b(lite?.15:.03),an:r.b(.5),c:r.i(0,5),j,lite});
-  const bands=[];for(let j=0;j<n;j++){const runs=[];let t=r.f(0,1),end=t+N,prev='';while(t<end-.01){let len=r.f(.4,1.35);if(end-t-len<.4)len=end-t;const ii=mod(Math.round(t+len/2),N),s=fl.slots[ii]||(fl.dbl[ii]!=null?fl.slots[fl.dbl[ii]]:null);let name;if(s&&s.v[j]&&s.v[j]!==prev&&r.b(.7))name=s.v[j];else if(G.theme&&G.theme!==prev&&r.b(.25))name=G.theme;else name=r.pick((fl.VA||VN).filter(q=>q!==prev));prev=name;runs.push(mk(t,len,name,j,0));t+=len}bands.push(runs)}
-  const tr=[],cs=[...fl.content].sort((p,q)=>p-q);cs.forEach((q,ix)=>{const two=fl.dbl[mod(q+1,N)]===q;tr.push({t0:q-.5,len:two?2:1,title:q,seed:r.i(1,2e9)});let t=q+(two?1.5:.5);const e=(ix<cs.length-1?cs[ix+1]:cs[0]+N)-.5;while(e-t>.3){let len=Math.min(e-t,r.f(.6,1.6));if(e-t-len<.4)len=e-t;tr.push(mk(t,len,r.pick(['noty','klinya','krivye','profil','kod','cifry','spektr','matrica','uglovye','stih','stih','shrift','volna','zvuk','zodchie','cirkad','ekonom','elektro','material','teoria']),-1,1));t+=len}});
-  const lines=[];for(let q=0;q<r.i(9,16);q++){const y0=r.f(Y0+20,Y1-20);lines.push({t0:r.f(0,N),len:r.f(1.2,4),y0,y1:y0+r.f(-150,150),acc:r.b(.3)?r.i(0,5):-1})}
+  const bands=[];for(let j=0;j<n;j++){const runs=[];let t=r.f(0,1),end=t+N,prev='';while(t<end-.01){let len=r.f(.4,1.35)/WK;if(end-t-len<.4/WK)len=end-t;const ii=mod(Math.round(t+len/2),N),s=fl.slots[ii]||(fl.dbl[ii]!=null?fl.slots[fl.dbl[ii]]:null);let name;if(s&&s.v[j]&&s.v[j]!==prev&&r.b(.7))name=s.v[j];else if(G.theme&&G.theme!==prev&&r.b(.25))name=G.theme;else name=r.pick((fl.VA||VN).filter(q=>q!==prev));prev=name;runs.push(mk(t,len,name,j,0));t+=len}bands.push(runs)}
+  const tr=[],cs=[...fl.content].sort((p,q)=>p-q);cs.forEach((q,ix)=>{const two=fl.dbl[mod(q+1,N)]===q;tr.push({t0:q-.5,len:two?2:1,title:q,seed:r.i(1,2e9)});let t=q+(two?1.5:.5);const e=(ix<cs.length-1?cs[ix+1]:cs[0]+N)-.5;while(e-t>.3/WK){let len=Math.min(e-t,r.f(.6,1.6)/WK);if(e-t-len<.4/WK)len=e-t;tr.push(mk(t,len,r.pick(['noty','klinya','krivye','profil','kod','cifry','spektr','matrica','uglovye','stih','stih','shrift','volna','zvuk','zodchie','cirkad','ekonom','elektro','material','teoria']),-1,1));t+=len}});
+  const lines=[];for(let q=0;q<r.i(9,16);q++){const y0=r.f(Y0+20,Y1-20);lines.push({t0:r.f(0,N),len:r.f(1.2,4)/WK,y0,y1:y0+r.f(-150,150),acc:r.b(.3)?r.i(0,5):-1})}
   const clouds=[];for(let q=0;q<r.i(9,14);q++)clouds.push({t:r.f(0,N),y:r.f(Y0+60,Y1-60),n:r.i(40,140),seed:r.i(1,2e9)});
   const rim=()=>({y:0,A:r.f(1.5,4),k:r.i(1,3),p:r.f(0,6.28),A2:r.f(.6,2),k2:r.i(4,7)});
   return{low,n,edges,bands,tr,lines,clouds,top:rim(),bot:rim()}}
@@ -910,7 +911,7 @@ for(let k=0;k<3;k++){const fl={f:null,g:new THREE.Group(),sheets:[],th:0,vth:0,s
   pool.push(fl)}
 function assign(fl,f){fl.f=f;const sec=FL[mod(f,NF)];fl.sec=mod(f,NF);fl.name=sec.name;fl.seed=new R(seed).child('etazh-'+f).s;
   const r=new R(fl.seed),g=r.child('stil');fl.P=mkLight(r.child('svet'),f===0);fl.G={lw:g.pick([.8,1,1,1.5]),fill:g.pick(['solid','solid','hatch','outline']),bands:g.pick([[2,3],[2,3],[3,4],[3,4]]),theme:g.b(.4)?g.pick(VN):null,title:g.pick(['top','top','bottom']),dots:g.b(.25),num:false,hand:g.pick([.15,.3,.5,.8])};fl.dir=-1;fl.sp=g.f(.018,.052);
-  {const ra=new R(fl.seed^fnv('arsenal-'+Math.floor(Date.now()/240000))),sh=VN.slice().sort(()=>ra.f(-1,1));fl.VA=sh.slice(0,Math.round(VN.length*ra.f(.6,.7)))}fl.slots=Array(N).fill(null);fl.content=[];const n=sec.items.length;sec.items.forEach((it,j)=>{const q=Math.round(j*N/n)%N;fl.slots[q]=it;fl.content.push(q)});fl.dbl={};fl.content.forEach(q=>{const c=mod(q+1,N);if(!fl.slots[c])fl.dbl[c]=q});fl.L=layout(fl);
+  {const ra=new R(fl.seed^fnv('arsenal-'+Math.floor(Date.now()/240000))),sh=VN.slice().sort(()=>ra.f(-1,1));fl.VA=sh.slice(0,Math.round(VN.length*ra.f(.6,.7)))}fl.slots=Array(N).fill(null);fl.content=[];const n=sec.items.length;sec.items.forEach((it,j)=>{const q=Math.round(j*N/n)%N;fl.slots[q]=it;fl.content.push(q)});fl.dbl={}; /* пар больше нет: двойной сегмент это одно полотно (WIDE) */fl.L=layout(fl);
   fl.sel=fl.content[0];fl.th=-selA(fl)+(f===0?0:g.f(-.2,.2));fl.vth=0;fl.snap=false;fl.thA=null;
   fl.queue=[...Array(N).keys()].sort((p,q)=>Math.abs(norm((p-fl.sel)*STEP))-Math.abs(norm((q-fl.sel)*STEP)));for(const s of fl.sheets){s.drawn=false;s.op=0;s.pop=0;s.ma.material.map=s.ta;s.mb.material.map=s.tb;s.mp.material.color.set(fl.P.paper)}if(hi.fl===fl){hi.fl=null;hi.i=-1}}
 const floorOf=f=>pool.find(q=>q.f===f);
@@ -1274,8 +1275,8 @@ $('zs').onclick=()=>{const v=$('zi').value.trim(),ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$
 /* ---------- состояние ---------- */
 const st={cr:0,xs:0,mod:null,mk:0,tu:0,tl:0,y:0,vy:0,yT:null,rest:0,cur:0,d:1,dT:1,ax:0,auto:true,idle:0,k:0,pend:null};
 let dSel=6,dTow=12,voA=-1e9;
-function fit(){{const d=DBL();if(fit.d!==undefined&&fit.d!==d)for(const f of pool){for(const s of f.sheets)s.drawn=false;f.queue=[...Array(N).keys()].sort((p,q)=>Math.abs(norm((p-f.sel)*STEP))-Math.abs(norm((q-f.sel)*STEP)))}fit.d=d}const w=innerWidth,h=innerHeight,ae=(w-PW())/h;rn.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();voA=-1e9;
-  const m=mob();dSel=Math.max(Hc*1.2/((m?.5:.68)*2*tn0),Wc*1.2/((m?.9:.42)*2*tn0*ae));dTow=Math.max(PITCH*2.7/(2*tn0),Rc*2.5/(2*tn0*ae))}
+function fit(){if(DBL()!==WIDE){location.reload();return}{const d=DBL();if(fit.d!==undefined&&fit.d!==d)for(const f of pool){for(const s of f.sheets)s.drawn=false;f.queue=[...Array(N).keys()].sort((p,q)=>Math.abs(norm((p-f.sel)*STEP))-Math.abs(norm((q-f.sel)*STEP)))}fit.d=d}const w=innerWidth,h=innerHeight,ae=(w-PW())/h;rn.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();voA=-1e9;
+  const m=mob();dSel=Math.max(Hc*1.2/((m?.5:.68)*2*tn0),Wc*1.2/((m?.9:WIDE?.8:.42)*2*tn0*ae));dTow=Math.max(PITCH*2.7/(2*tn0),Rc*2.5/(2*tn0*ae))}
 addEventListener('resize',fit);
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2, sm=t=>t*t*(3-2*t);
 function norm(a){a=(a+Math.PI)%(Math.PI*2);if(a<0)a+=Math.PI*2;return a-Math.PI}
